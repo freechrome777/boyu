@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>房貸還款計算機</title>
+    <style>
+        @font-face {
+            font-family: 'Harlow Solid Italic';
+            src: url('https://fonts.gstatic.com/s/harlowsoliditalic/v1/HarlowSolidItalic.ttf') format('truetype');
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: linear-gradient(135deg, #87CEEB 0%, #98D8E8 25%, #B0E0E6 50%, #87CEFA 75%, #87CEEB 100%);
+            background-attachment: fixed;
+            color: #333;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.8) 15%, transparent 15%),
+                radial-gradient(circle at 70% 20%, rgba(255,255,255,0.6) 20%, transparent 20%),
+                radial-gradient(circle at 40% 70%, rgba(255,255,255,0.7) 25%, transparent 25%),
+                radial-gradient(circle at 80% 80%, rgba(255,255,255,0.5) 18%, transparent 18%),
+                radial-gradient(circle at 10% 80%, rgba(255,255,255,0.6) 22%, transparent 22%),
+                radial-gradient(circle at 90% 40%, rgba(255,255,255,0.4) 16%, transparent 16%),
+                radial-gradient(circle at 30% 10%, rgba(255,255,255,0.7) 12%, transparent 12%);
+            animation: cloudDrift 30s ease-in-out infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        @keyframes cloudDrift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(10px) translateY(-5px); }
+            50% { transform: translateX(-5px) translateY(10px); }
+            75% { transform: translateX(-10px) translateY(-8px); }
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .byline {
+            text-align: center;
+            color: #007bff;
+            font-size: 72px;
+            font-family: 'Harlow Solid Italic', serif;
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid rgba(224, 224, 224, 0.6);
+            border-radius: 8px;
+            background-color: rgba(250, 250, 250, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .rate-inputs-container {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: rgba(241, 244, 246, 0.9);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+        .radio-group {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        .radio-group input {
+            margin-right: 8px;
+        }
+        .radio-group label:hover {
+            background-color: #e9ecef;
+        }
+        .radio-group input:checked + span {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .button-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .button-group button {
+            padding: 12px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+        .button-group button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        #results {
+            margin-top: 40px;
+            border-top: 2px solid #ddd;
+            padding-top: 20px;
+        }
+        #summary {
+            background: linear-gradient(135deg, rgba(234, 246, 255, 0.9), rgba(230, 247, 255, 0.9));
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid rgba(204, 229, 255, 0.6);
+            backdrop-filter: blur(5px);
+        }
+        #summary p {
+            font-size: 1.1em;
+            margin: 5px 0;
+        }
+        #repaymentTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #repaymentTable th, #repaymentTable td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        #repaymentTable th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #4a4a4a;
+        }
+        .formula-box {
+            background-color: #f9f9f9;
+            border: 1px solid #e1e1e1;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+        }
+        .formula {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.2em;
+            text-align: center;
+            color: #c0392b;
+            font-weight: bold;
+        }
+        .error-message {
+            color: #e74c3c;
+            background-color: #fdf2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+        }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>房貸還款計算機</h1>
+    <div class="byline">by boyu</div>
+
+    <div class="input-group">
+        <label for="totalPrice">房屋總價 (NT$)</label>
+        <input type="number" id="totalPrice" value="4380000">
+    </div>
+
+    <div class="input-group">
+        <label for="downPaymentPercentage">頭期款比例 (%)</label>
+        <input type="number" id="downPaymentPercentage" value="20">
+    </div>
+
+    <div class="input-group">
+        <label for="loanTerm">貸款年限 (年)</label>
+        <input type="number" id="loanTerm" value="30">
+    </div>
+    
+    <div class="radio-group" onchange="toggleRateInputs()">
+        <label><input type="radio" name="rateType" value="fixed" checked> <span>一段式利率</span></label>
+        <label><input type="radio" name="rateType" value="segmented"> <span>分段式利率</span></label>
+        <label><input type="radio" name="rateType" value="variable"> <span>機動式利率</span></label>
+    </div>
+
+    <div class="rate-inputs-container" id="fixedRateInput">
+        <label for="fixedRate">一段式利率 - 固定年利率 (%)</label>
+        <input type="number" id="fixedRate" value="2.3" step="0.01">
+    </div>
+    
+    <div class="rate-inputs-container" id="segmentedRateInputs">
+        <label for="segmentedRate1">分段式利率 - 前3年年利率 (%)</label>
+        <input type="number" id="segmentedRate1" value="1.8" step="0.01">
+        <label for="segmentedRate2">分段式利率 - 第4年起年利率 (%)</label>
+        <input type="number" id="segmentedRate2" value="2.8" step="0.01">
+    </div>
+
+    <div class="rate-inputs-container" id="variableRateInputs">
+        <label for="variableRateInitial">機動式利率 - 初始年利率 (%)</label>
+        <input type="number" id="variableRateInitial" value="2.3" step="0.01">
+        <label for="variableRateIncrement">機動式利率 - 每年增幅 (%)</label>
+        <input type="number" id="variableRateIncrement" value="0.1" step="0.01">
+    </div>
+
+    <div class="button-group">
+        <button onclick="calculateRepayment()">開始計算</button>
+    </div>
+
+    <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+    <div id="results" style="display: none;">
+        <h2>計算結果</h2>
+        
+        <div id="summary">
+            <p><strong>貸款金額：</strong> <span id="loanAmountSummary"></span></p>
+            <p><strong>每月還款金額：</strong> <span id="monthlyPaymentSummary"></span></p>
+            <p><strong>總還款金額：</strong> <span id="totalRepaymentSummary"></span></p>
+            <p><strong>總利息支出：</strong> <span id="totalInterestSummary"></span></p>
+        </div>
+
+        <div class="formula-box">
+            <h4>計算公式（等額本息）</h4>
+            <p class="formula">$$ A = P \times \frac{r(1+r)^n}{(1+r)^n - 1} $$</p>
+            <ul>
+                <li>A = 每月還款金額</li>
+                <li>P = 貸款本金</li>
+                <li>r = 月利率</li>
+                <li>n = 總期數（月）</li>
+            </ul>
+        </div>
+
+        <table id="repaymentTable">
+            <thead>
+                <tr>
+                    <th>期數 (月)</th>
+                    <th>總還款金額</th>
+                    <th>本金</th>
+                    <th>利息</th>
+                    <th>剩餘本金</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function toggleRateInputs() {
+        const rateType = document.querySelector('input[name="rateType"]:checked').value;
+        document.querySelectorAll('.rate-inputs-container').forEach(el => el.style.display = 'none');
+        
+        if (rateType === 'fixed') {
+            document.getElementById('fixedRateInput').style.display = 'flex';
+        } else if (rateType === 'segmented') {
+            document.getElementById('segmentedRateInputs').style.display = 'flex';
+        } else if (rateType === 'variable') {
+            document.getElementById('variableRateInputs').style.display = 'flex';
+        }
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+    }
+
+    function hideError() {
+        document.getElementById('errorMessage').style.display = 'none';
+    }
+
+    function calculateMonthlyPayment(principal, monthlyRate, months) {
+        if (monthlyRate === 0) {
+            return principal / months;
+        }
+        return (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+    }
+
+    function calculateRepayment() {
+        hideError();
+        
+        const totalPrice = parseFloat(document.getElementById('totalPrice').value);
+        const downPaymentPercentage = parseFloat(document.getElementById('downPaymentPercentage').value);
+        const loanTermYears = parseFloat(document.getElementById('loanTerm').value);
+        const rateType = document.querySelector('input[name="rateType"]:checked').value;
+
+        // 輸入驗證
+        if (isNaN(totalPrice) || totalPrice <= 0) {
+            showError('請輸入有效的房屋總價');
+            return;
+        }
+        if (isNaN(downPaymentPercentage) || downPaymentPercentage < 0 || downPaymentPercentage > 100) {
+            showError('請輸入有效的頭期款比例 (0-100%)');
+            return;
+        }
+        if (isNaN(loanTermYears) || loanTermYears <= 0) {
+            showError('請輸入有效的貸款年限');
+            return;
+        }
+
+        const downPayment = totalPrice * (downPaymentPercentage / 100);
+        const loanAmount = totalPrice - downPayment;
+        const loanTermMonths = loanTermYears * 12;
+
+        if (loanAmount <= 0) {
+            showError('貸款金額必須大於0');
+            return;
+        }
+
+        let totalRepayment = 0;
+        let remainingPrincipal = loanAmount;
+        const repaymentDetails = [];
+
+        try {
+            if (rateType === 'fixed') {
+                const annualRate = parseFloat(document.getElementById('fixedRate').value);
+                if (isNaN(annualRate) || annualRate < 0) {
+                    showError('請輸入有效的利率');
+                    return;
+                }
+                
+                const monthlyRate = (annualRate / 100) / 12;
+                const monthlyPayment = calculateMonthlyPayment(loanAmount, monthlyRate, loanTermMonths);
+                
+                for (let i = 1; i <= loanTermMonths; i++) {
+                    const interest = remainingPrincipal * monthlyRate;
+                    const principal = monthlyPayment - interest;
+                    remainingPrincipal = Math.max(0, remainingPrincipal - principal);
+                    totalRepayment += monthlyPayment;
+                    repaymentDetails.push({ 
+                        month: i, 
+                        totalPayment: monthlyPayment, 
+                        principal, 
+                        interest, 
+                        remaining: remainingPrincipal 
+                    });
+                }
+                
+            } else if (rateType === 'segmented') {
+                const rate1 = parseFloat(document.getElementById('segmentedRate1').value);
+                const rate2 = parseFloat(document.getElementById('segmentedRate2').value);
+                
+                if (isNaN(rate1) || rate1 < 0 || isNaN(rate2) || rate2 < 0) {
+                    showError('請輸入有效的分段利率');
+                    return;
+                }
+                
+                // 第一階段：前3年
+                const monthlyRate1 = (rate1 / 100) / 12;
+                const monthlyPayment1 = calculateMonthlyPayment(loanAmount, monthlyRate1, loanTermMonths);
+                
+                for (let i = 1; i <= Math.min(loanTermMonths, 36); i++) {
+                    const interest = remainingPrincipal * monthlyRate1;
+                    const principal = monthlyPayment1 - interest;
+                    remainingPrincipal = Math.max(0, remainingPrincipal - principal);
+                    totalRepayment += monthlyPayment1;
+                    repaymentDetails.push({ 
+                        month: i, 
+                        totalPayment: monthlyPayment1, 
+                        principal, 
+                        interest, 
+                        remaining: remainingPrincipal 
+                    });
+                }
+
+                // 第二階段：剩餘期間
+                if (loanTermMonths > 36 && remainingPrincipal > 0) {
+                    const monthlyRate2 = (rate2 / 100) / 12;
+                    const remainingTerm = loanTermMonths - 36;
+                    const monthlyPayment2 = calculateMonthlyPayment(remainingPrincipal, monthlyRate2, remainingTerm);
+                    
+                    for (let i = 37; i <= loanTermMonths; i++) {
+                        const interest = remainingPrincipal * monthlyRate2;
+                        const principal = monthlyPayment2 - interest;
+                        remainingPrincipal = Math.max(0, remainingPrincipal - principal);
+                        totalRepayment += monthlyPayment2;
+                        repaymentDetails.push({ 
+                            month: i, 
+                            totalPayment: monthlyPayment2, 
+                            principal, 
+                            interest, 
+                            remaining: remainingPrincipal 
+                        });
+                    }
+                }
+                
+            } else if (rateType === 'variable') {
+                const initialRate = parseFloat(document.getElementById('variableRateInitial').value);
+                const increment = parseFloat(document.getElementById('variableRateIncrement').value);
+                
+                if (isNaN(initialRate) || initialRate < 0 || isNaN(increment)) {
+                    showError('請輸入有效的機動利率參數');
+                    return;
+                }
+                
+                for (let year = 0; year < loanTermYears; year++) {
+                    const annualRate = (initialRate + year * increment) / 100;
+                    const monthlyRate = annualRate / 12;
+                    const remainingTerm = loanTermMonths - (year * 12);
+                    const monthsThisYear = Math.min(12, remainingTerm);
+                    
+                    if (remainingPrincipal <= 0) break;
+                    
+                    const monthlyPayment = calculateMonthlyPayment(remainingPrincipal, monthlyRate, remainingTerm);
+                    
+                    for (let month = 1; month <= monthsThisYear; month++) {
+                        const currentMonth = year * 12 + month;
+                        const interest = remainingPrincipal * monthlyRate;
+                        const principal = monthlyPayment - interest;
+                        remainingPrincipal = Math.max(0, remainingPrincipal - principal);
+                        totalRepayment += monthlyPayment;
+                        repaymentDetails.push({ 
+                            month: currentMonth, 
+                            totalPayment: monthlyPayment, 
+                            principal, 
+                            interest, 
+                            remaining: remainingPrincipal 
+                        });
+                    }
+                }
+            }
+            
+            displayResults(loanAmount, totalRepayment, repaymentDetails, rateType);
+            
+        } catch (error) {
+            showError('計算過程中發生錯誤，請檢查輸入值');
+            console.error('Calculation error:', error);
+        }
+    }
+
+    function formatCurrency(amount) {
+        return `NT$${Math.round(amount).toLocaleString()}`;
+    }
+
+    function displayResults(loanAmount, totalRepayment, repaymentDetails, rateType) {
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('loanAmountSummary').textContent = formatCurrency(loanAmount);
+        document.getElementById('totalRepaymentSummary').textContent = formatCurrency(totalRepayment);
+        
+        const totalInterest = totalRepayment - loanAmount;
+        document.getElementById('totalInterestSummary').textContent = formatCurrency(totalInterest);
+
+        const tableBody = document.querySelector('#repaymentTable tbody');
+        tableBody.innerHTML = '';
+
+        if (repaymentDetails.length === 0) {
+            showError('無法生成還款明細');
+            return;
+        }
+
+        // 顯示月付金資訊
+        if (rateType === 'segmented') {
+            const firstSegmentPayment = repaymentDetails[0].totalPayment;
+            const secondSegmentPayment = repaymentDetails.length > 36 ? repaymentDetails[36].totalPayment : firstSegmentPayment;
+            document.getElementById('monthlyPaymentSummary').textContent = 
+                `前3年約 ${formatCurrency(firstSegmentPayment)}，第4年起約 ${formatCurrency(secondSegmentPayment)}`;
+        } else if (rateType === 'variable') {
+            const initialPayment = repaymentDetails[0].totalPayment;
+            document.getElementById('monthlyPaymentSummary').textContent = 
+                `初始約 ${formatCurrency(initialPayment)} (每年略微增加)`;
+        } else {
+            const monthlyPayment = repaymentDetails[0].totalPayment;
+            document.getElementById('monthlyPaymentSummary').textContent = `約 ${formatCurrency(monthlyPayment)}`;
+        }
+
+        // 填充表格
+        repaymentDetails.forEach(detail => {
+            const row = tableBody.insertRow();
+            row.insertCell(0).textContent = detail.month;
+            row.insertCell(1).textContent = formatCurrency(detail.totalPayment);
+            row.insertCell(2).textContent = formatCurrency(detail.principal);
+            row.insertCell(3).textContent = formatCurrency(detail.interest);
+            row.insertCell(4).textContent = formatCurrency(detail.remaining);
+        });
+        
+        // 確保 MathJax 正確渲染公式
+        if (typeof MathJax !== 'undefined') {
+            MathJax.typeset();
+        }
+    }
+
+    // 頁面載入時執行
+    document.addEventListener('DOMContentLoaded', (event) => {
+        toggleRateInputs();
+        calculateRepayment();
+    });
+</script>
+
+</body>
+</html>
