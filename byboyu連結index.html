@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>抗精神病藥物查詢系統</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+
+body {
+
+background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+
+color: #e2e8f0;
+
+font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+}
+
+.glass-card {
+
+background: rgba(30, 41, 59, 0.7);
+
+backdrop-filter: blur(10px);
+
+border: 1px solid rgba(56, 189, 248, 0.2);
+
+}
+
+.text-glow {
+
+text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+
+}
+
+</style>
+
+</head>
+
+<body class="min-h-screen flex flex-col items-center py-12 px-4">
+
+
+<div class="max-w-3xl w-full">
+
+<header class="text-center mb-10">
+
+<h1 class="text-4xl font-bold text-sky-400 mb-2 text-glow">抗精神病藥物查詢系統</h1>
+
+<p class="text-slate-400">請選擇藥物類別以檢視詳細資訊</p>
+
+</header>
+
+
+<div class="glass-card rounded-2xl p-8 shadow-2xl">
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+<div>
+
+<label class="block text-sm font-medium text-slate-400 mb-2">藥物類別</label>
+
+<select id="categorySelect" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-sky-500 transition">
+
+<option value="1">第一代</option>
+
+<option value="2">第二代</option>
+
+<option value="3">第三代</option>
+
+</select>
+
+</div>
+
+<div>
+
+<label class="block text-sm font-medium text-slate-400 mb-2">作用機制</label>
+
+<div id="mechanismDisplay" class="w-full bg-slate-900/50 border border-slate-800 text-sky-300 rounded-lg p-3 italic">
+
+第一代多巴胺D2受體拮抗劑
+
+</div>
+
+</div>
+
+</div>
+
+
+<div id="drugList" class="space-y-3">
+
+<!-- 藥物連結將由 JS 動態生成 -->
+
+</div>
+
+</div>
+
+
+<footer class="mt-12 text-center text-slate-500 text-sm">
+
+<p>本系統僅供參考，實際醫療用藥請諮詢專業醫師。</p>
+
+<p class="mt-2 text-xs text-slate-600">byboyu製作</p>
+
+</footer>
+
+</div>
+
+
+<script>
+
+const data = {
+
+1: {
+
+mechanism: "第一代多巴胺D2受體拮抗劑",
+
+drugs: [
+
+{ name: "氟哌啶醇 (Haloperidol)", url: "https://zh.wikipedia.org/zh-tw/%E6%B0%9F%E5%93%8C%E5%95%B6%E9%86%87" },
+
+{ name: "氟哌利多 (Droperidol)", url: "https://zh.wikipedia.org/wiki/%E6%B0%9F%E5%93%8C%E5%88%A9%E5%A4%9A" },
+
+{ name: "氯丙嗪 (Chlorpromazine)", url: "https://zh.wikipedia.org/zh-tw/%E6%B0%AF%E4%B8%99%E5%97%AA" },
+
+{ name: "氟奮乃靜 (Fluphenazine)", url: "https://zh.wikipedia.org/zh-tw/%E6%B0%9F%E5%A5%8B%E4%B9%83%E9%9D%99" },
+
+{ name: "奮乃靜 (Perphenazine)", url: "https://zh.wikipedia.org/zh-tw/%E5%A5%8B%E4%B9%83%E9%9D%99" },
+
+{ name: "硫利達嗪 (Thioridazine)", url: "https://en.wikipedia.org/wiki/Thioridazine" },
+
+{ name: "氯丙硫蔥 (Chlorprothixene)", url: "https://en.wikipedia.org/wiki/Chlorprothixene" },
+
+{ name: "氟哌噻噸 (Flupenthixol)", url: "https://en.wikipedia.org/wiki/Flupentixol" },
+
+{ name: "丙氯拉嗪 (Prochlorperazine)", url: "https://zh.wikipedia.org/zh-tw/%E4%B8%99%E6%B0%AF%E6%8B%89%E5%97%AA" },
+
+{ name: "三氟拉嗪 (Trifluoperazine)", url: "https://en.wikipedia.org/wiki/Trifluoperazine" }
+
+]
+
+},
+
+2: {
+
+mechanism: "第二代多巴胺D2受體拮抗劑、血清素2A受體拮抗劑",
+
+drugs: [
+
+{ name: "氯氮平 (Clozapine)", url: "https://zh.wikipedia.org/zh-tw/%E6%B0%AF%E6%B0%AE%E5%B9%B3" },
+
+{ name: "利培酮 (Risperidone)", url: "https://zh.wikipedia.org/zh-tw/%E5%88%A9%E5%9F%B9%E9%85%AE" },
+
+{ name: "盧拉西酮 (Lurasidone)", url: "https://zh.wikipedia.org/zh-tw/%E9%B2%81%E6%8B%89%E8%A5%BF%E9%85%AE" },
+
+{ name: "齊拉西酮 (Ziprasidone)", url: "https://zh.wikipedia.org/zh-tw/%E9%BD%8A%E6%8B%89%E8%A5%BF%E9%85%AE" },
+
+{ name: "帕利哌酮 (Paliperidone)", url: "https://zh.wikipedia.org/zh-tw/%E5%B8%95%E5%88%A9%E5%93%8C%E9%85%AE" },
+
+{ name: "伊潘立酮 (Iloperidone)", url: "https://en.wikipedia.org/wiki/Iloperidone" },
+
+{ name: "奧氮平 (Olanzapine)", url: "https://zh.wikipedia.org/zh-tw/%E5%A5%A5%E6%B0%AE%E5%B9%B3" },
+
+{ name: "喹硫平 (Quetiapine)", url: "https://zh.wikipedia.org/zh-tw/%E5%96%B9%E7%A1%AB%E5%B9%B3" },
+
+{ name: "阿塞那平 (Asenapine)", url: "https://en.wikipedia.org/wiki/Asenapine" },
+
+{ name: "氨磺必利 (Amisulpride)", url: "https://zh.wikipedia.org/zh-tw/%E6%B0%A8%E7%A3%BA%E5%BF%85%E5%88%A9" },
+
+{ name: "舒必利 (Sulpiride)", url: "https://zh.wikipedia.org/zh-tw/%E8%88%92%E5%BF%85%E5%88%A9" }
+
+]
+
+},
+
+3: {
+
+mechanism: "第三代多巴胺D2受體部分激動劑",
+
+drugs: [
+
+{ name: "阿立哌唑 (Aripiprazole)", url: "https://zh.wikipedia.org/zh-tw/%E9%98%BF%E7%AB%8B%E5%93%8C%E5%94%91" },
+
+{ name: "布瑞哌唑 (Brexpiprazole)", url: "https://zh.wikipedia.org/zh-tw/%E5%B8%83%E7%91%9E%E5%93%8C%E5%94%91" },
+
+{ name: "卡利拉嗪 (Cariprazine)", url: "https://zh.wikipedia.org/zh-tw/%E5%8D%A1%E5%88%A9%E6%8B%89%E5%97%AA" }
+
+]
+
+}
+
+};
+
+
+const select = document.getElementById('categorySelect');
+
+const mech = document.getElementById('mechanismDisplay');
+
+const list = document.getElementById('drugList');
+
+
+function updateUI() {
+
+const val = select.value;
+
+const entry = data[val];
+
+mech.innerText = entry.mechanism;
+
+list.innerHTML = entry.drugs.map(drug => `
+
+<a href="${drug.url}" target="_blank" class="block p-3 rounded-lg bg-slate-800 hover:bg-sky-900/50 transition border border-slate-700 flex justify-between items-center">
+
+<span>${drug.name}</span>
+
+<span class="text-sky-500 text-xs uppercase">連結 →</span>
+
+</a>
+
+`).join('');
+
+}
+
+
+select.addEventListener('change', updateUI);
+
+updateUI();
+
+</script>
+
+</body>
+
+</html>
+
